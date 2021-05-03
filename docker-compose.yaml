@@ -1,0 +1,42 @@
+version: "3"
+
+networks:
+  app:
+    driver: bridge
+  db:
+    driver: bridge
+
+services:
+  pfa-2-nginx:
+    build: ./nginx
+    container_name: pfa-2-nginx
+    depends_on:
+      - pfa-2-node
+    networks:
+      - app
+    ports:
+      - 8000:80
+
+  pfa-2-node:
+    build: ./node
+    container_name: pfa-2-node
+    depends_on:
+      - pfa-2-mysql
+    networks:
+      - app
+      - db
+    volumes:
+      - ./node:/usr/src/app
+      - /usr/src/app/node_modules
+
+  pfa-2-mysql:
+    command: --innodb-use-native-aio=0
+    container_name: pfa-2-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    image: mysql:5.7
+    networks:
+      - db
+    volumes:
+      - ./mysql:/docker-entrypoint-initdb.d
+      - ./dbdata:/var/lib/mysql
